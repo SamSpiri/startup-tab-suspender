@@ -1,0 +1,36 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build zip
+        run: ./scripts/package.sh
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
+
+      # Stubbed until a Chrome Web Store developer account/OAuth token exist.
+      # Required repository secrets: CWS_EXTENSION_ID, CWS_CLIENT_ID,
+      # CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN.
+      #
+      # - name: Publish to Chrome Web Store
+      #   uses: mobilefirstllc/cws-publish@latest
+      #   with:
+      #     action: publish
+      #     extension_id: ${{ secrets.CWS_EXTENSION_ID }}
+      #     client_id: ${{ secrets.CWS_CLIENT_ID }}
+      #     client_secret: ${{ secrets.CWS_CLIENT_SECRET }}
+      #     refresh_token: ${{ secrets.CWS_REFRESH_TOKEN }}
+      #     zip_file: dist/brave-lazy-startup-*.zip
