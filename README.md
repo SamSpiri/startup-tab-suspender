@@ -17,8 +17,8 @@ MV3 service worker, no content scripts:
 - On browser start (`runtime.onStartup` / `runtime.onInstalled`) it opens a
   120 s window covering the startup session restore.
 - Every window created — including a window restored or reopened at any time —
-  gets its own arm (~15 s, extended by ~10 s on each successful discard) so its
-  background tabs are suspended too.
+  gets its own arm (~15 s, extended by ~10 s on each successful discard, capped
+  at 60 s from creation) so its background tabs are suspended too.
 - Inside an armed window, an inactive `http(s)` tab that starts loading
   (`tabs.onUpdated` status `loading`) is immediately discarded via the native
   `chrome.tabs.discard` API.

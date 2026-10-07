@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Startup Tab Suspender",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Keeps restored background tabs unloaded on startup until you click them.",
   "homepage_url": "https://github.com/SamSpiri/startup-tab-suspender",
   "minimum_chrome_version": "109",
