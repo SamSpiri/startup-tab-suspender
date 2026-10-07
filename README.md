@@ -1,21 +1,27 @@
 # Startup Tab Suspender
 
-Keep restored background tabs **unloaded** on startup until you click them.
+Keep restored background tabs **unloaded** until you click them.
 
 Chromium-based browsers (Brave, Chrome, Edge) reload the content of *every*
 restored tab when you reopen a session. With many tabs this causes a startup
 CPU/network spike and sluggish first seconds. This extension restores your full
 tab strip but leaves background tabs suspended; clicking a tab loads it.
 
+This covers both the startup session restore **and windows reopened later in the
+session** (Reopen closed window / `Ctrl+Shift+T`).
+
 ## How it works
 
 MV3 service worker, no content scripts:
 
 - On browser start (`runtime.onStartup` / `runtime.onInstalled`) it opens a
-  120 s window.
-- Within that window, an inactive `http(s)` tab that starts loading
-  (`tabs.onUpdated` status `loading`, plus a best-effort `tabs.onCreated`) is
-  immediately discarded via the native `chrome.tabs.discard` API.
+  120 s window covering the startup session restore.
+- Every window created — including a window restored or reopened at any time —
+  gets its own arm (~15 s, extended by ~10 s on each successful discard) so its
+  background tabs are suspended too.
+- Inside an armed window, an inactive `http(s)` tab that starts loading
+  (`tabs.onUpdated` status `loading`) is immediately discarded via the native
+  `chrome.tabs.discard` API.
 - The active tab in each window is never discarded.
 
 Discarded tabs keep their title, favicon and position and reload when selected.
@@ -25,6 +31,19 @@ quickly-aborted document request before it is discarded.
 `chrome.tabs.discard` is Chrome's native discard (same mechanism as Memory
 Saver), so tabs are not replaced by a fake page — removing the extension never
 loses a tab.
+
+## Scope and trade-offs
+
+- Only tabs that start loading **after** a window is armed are discarded.
+- Background tabs you open in an **existing** window (middle-click / `Ctrl+click`)
+  are left to load normally — the arm is set per new window, not globally.
+- Any newly created window is armed regardless of why it appeared. A normal new
+  window (`Ctrl+N`) is harmless (its single tab is active and never discarded);
+  a window opened with several URLs at once (launcher command or another
+  extension) will have its background tabs suspended.
+- If the service worker is evicted mid-restore, the in-memory arm for that window
+  is lost until its next event; the startup window is persisted in
+  `storage.session`.
 
 ## Install (unpacked, for development)
 
